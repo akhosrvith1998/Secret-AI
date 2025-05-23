@@ -1,6 +1,11 @@
 from pyrogram import Client
 from pyrogram.types import CallbackQuery
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, ChatPermissions
+from plugins.subscription import charge_command_handler
+
+if message.text.startswith("شارژ"):
+    response = charge_command_handler(message)
+    send_response(response)
 
 from plugins.querys import verify_user, get_setting, change_answer, change_comment
 
