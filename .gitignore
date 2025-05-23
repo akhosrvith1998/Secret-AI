@@ -1,2 +1,4 @@
 databases/*
 plugins/__pycache__
+*.pyc
+config.ini
