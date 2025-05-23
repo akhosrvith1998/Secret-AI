@@ -1,104 +1,56 @@
-# Digi-Foss
-[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FFOSSFA%2FDigi-FOSS.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2FFOSSFA%2FDigi-FOSS?ref=badge_shield)
+# Secret AI
 
-Bot supervisor and contributor to admins in Group Management in [FOSS Family](https://t.me/foss_family) 
+ربات مدیریت گروه با قابلیت‌های پیشرفته برای مدیریت بهتر گروه‌های تلگرامی.
 
-## Feature
+## ویژگی‌ها
 
-Digi-FOSS Bot Features
-
-#### Panel
-
-```
+#### پنل مدیریت
 /help
-```
 
-#### Delete Message
+#### حذف پیام
+حذف پیام بر اساس تعداد 
+/del
 
-Delete message by number 
+#### اسپم
+ارسال پیام تکراری 
+/spam
 
-```
-/del [number]
-```
 
-#### Spam
-
-Spamming 
-
-```
-/spam [number: Max -> 20] [text]
-```
-
-#### ramadan
-
-Get the remaining time until azan 
-
-```
-/ramadan [city name] (Default: Tehran)
-```
-
-#### Warn
-
-```
+#### اخطار
 /warn
-```
-
-#### Mute User
-
-reply to user message and send: `/mute` to Mute user for 24 Hours
-
-reply to user message and send: `/un_mute` to unmute user
-
-#### Ban User
-
-Reply to user message and send : `/ban`
-
-Reply to user message and send: `/unban [@username]`
-
-#### Automatic Feature
-##### Welcome Message
-
-> سلام «ایدی کاربر» عزیز
->
-> به گروه «نام گروه» خوش اومدی
-
-##### Leave Message
-
-> رفتی؟
->
-> حوالت پا چراغ نفتی
-
-##### Auto Ban For Warn
-
-After 10 warn's the user will be ban
-
-###### Message
-
-> !اخطار به سرت رسیده ،محکوم به بن
-
-#### Optional Feature
-##### Ask Link
-
-Link to Google/DDG For Your Questions =)
-
-##### Fill in comments 1 to 4
-
-This Feature Takes the First to Fourth Comments of Posts that are Forwarded to Your Channel :))
-
-### Feature Task
-
-- [X] Warning
-- [X] Restrict user 
-- [ ] Group Lock
-- [ ] Anti-link 
-- [ ] Custom Media Filter
-- [ ] Anti-spam
-- [ ] Anti-flood
-- [x] Welcome Message
-- [x] ban and unban users
-- [x] Mute users
 
 
+#### سکوت کاربر
+ریپلای روی کاربر + ارسال `/mute` برای سکوت ۲۴ ساعته  
+ریپلای روی کاربر + ارسال `/un_mute` برای لغو سکوت
 
-## License
-[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FFOSSFA%2FDigi-FOSS.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2FFOSSFA%2FDigi-FOSS?ref=badge_large)
+#### بن کاربر
+ریپلای روی کاربر + ارسال `/ban`  
+ریپلای روی کاربر + ارسال `/unban [@یوزرنیم]`
+
+#### ویژگی‌های خودکار
+##### پیام خوشآمدگویی
+> سلام «آیدی کاربر» عزیز  
+> به گروه «نام گروه» خوش آمدید
+
+##### پیام خروج
+> رفتی؟  
+> حوالت پا چراغ نفتی!
+
+##### بن خودکار پس از ۱۰ اخطار
+> !اخطار به سرت رسیده، محکوم به بن
+
+#### ویژگی‌های اختیاری
+##### فیلتر رسانه
+امکان تنظیم قوانین برای انواع رسانه
+
+### لیست وظایف
+- [X] سیستم اخطار
+- [X] محدود کردن کاربران
+- [X] پیام خوشآمدگویی
+- [X] بن و آنبن کاربران
+- [X] سکوت کاربران
+- [ ] قفل گروه
+- [ ] فیلتر لینک
+- [ ] ضد اسپم
+- [ ] ضد فلود
