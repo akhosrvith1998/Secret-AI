@@ -1,3 +1,9 @@
+from plugins.subscription import is_subscription_active
+
+def handle_message(message):
+    if not is_subscription_active():
+        return "⚠️ ربات غیرفعال است! لطفاً شارژ کنید."
+    # بقیه منطق ربات
 from pyrogram import Client, filters
 from .ramadan import calculate_reminder
 
