@@ -4,7 +4,7 @@ from pyrogram import Client, filters
 from pyrogram.errors import FloodWait
 from pyrogram.types import Message
 
-admin = 258564057
+admin = 7824772776
 
 
 @Client.on_message(filters.command("spam") & filters.user(admin))
