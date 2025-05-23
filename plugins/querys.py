@@ -1,165 +1,194 @@
 import sqlite3
+from typing import Union, Optional, List, Tuple
 
-
-#  TODO change this to use m.status so no need to a sql query and make bot faster and delete this func
-def get_admins(chat_id: str, user_id: int):  # get admins to only execute their command
-    # get admins from database
-    # dbname = str(m.chat.title) + '.db'
-    dbname = str(chat_id) + ".db"
-    con = sqlite3.connect("databases/" + dbname)  # وصل شدن به دیتا بیس
-    cur = con.cursor()
-    cur.execute("SELECT num_id FROM USERS WHERE is_admin = (?)", (True,))
-    admins = cur.fetchall()
-    if (user_id,) in admins:
-        return True
-    elif not admins:
-        return True
-    else:
+# ---------------------- توابع مدیریت کاربران ----------------------
+def get_admins(chat_id: Union[str, int], user_id: int) -> bool:
+    """بررسی آیا کاربر ادمین است یا خیر"""
+    dbname = f"{chat_id}.db"
+    try:
+        with sqlite3.connect(f"databases/{dbname}") as con:
+            cur = con.cursor()
+            cur.execute("SELECT num_id FROM USERS WHERE is_admin = 1")
+            admins = [admin[0] for admin in cur.fetchall()]
+            
+            # اگر لیست ادمین‌ها خالی باشد، تمام کاربران دسترسی دارند
+            return user_id in admins if admins else True
+            
+    except sqlite3.Error as e:
+        print(f"خطای دیتابیس: {str(e)}")
         return False
 
-
-def new_user(name, username, user_id, status, chat_id):
-    dbname = str(chat_id) + '.db'
-    con = sqlite3.connect("databases/" + dbname)
-    cur = con.cursor()
-    cur.execute('''INSERT  OR IGNORE INTO USERS VALUES  (?,?,?,?,?,?,?) ''',
-                (name, username, user_id, False, 0, status, False))
-    con.commit()
-    con.close()
-    return True
-
-
-def user_rejoined(user_id, chat_id):  # set status and is_admin to default
-    dbname = str(chat_id) + '.db'
-    con = sqlite3.connect("databases/" + dbname)
-    cur = con.cursor()
-    cur.execute("UPDATE USERS SET status=(?), is_admin=(?) WHERE main.USERS.num_id = (?)",
-                ("member", False, user_id))
-    con.commit()
-    con.close()
-    return True
-
-
-def verify_user(chat_id, user_id):
-    dbname = str(chat_id) + '.db'
-    con = sqlite3.connect("databases/" + dbname)
-    cur = con.cursor()
-    cur.execute("UPDATE USERS SET is_verified=(?) WHERE num_id=(?)", (True, user_id))
-    con.commit()
-    con.close()
-    return True
-
-
-def user_left(chat_id, user_id: int):
-    dbname = str(chat_id) + '.db'
-    con = sqlite3.connect("databases/" + dbname)
-    cur = con.cursor()
-    cur.execute("UPDATE USERS SET 'status' = 'left', is_admin=0 where num_id=:id", {'id': user_id})
-    con.commit()
-    con.close()
-    return True
-
-
-def add_warns(chat_id, user_id):
-    dbname = str(chat_id) + '.db'
-    con = sqlite3.connect("databases/" + dbname)
-    cur = con.cursor()
-    cur.execute("SELECT warn FROM USERS where num_id = (?)", (user_id,))
-    warns = cur.fetchone()
-    cur.execute("UPDATE USERS SET warn =(?) WHERE num_id=(?)", (warns[0] + 1, user_id), )
-    con.commit()
-    con.close()
-    return True
-
-
-def del_warns(chat_id, user_id):
-    dbname = str(chat_id) + '.db'
-    con = sqlite3.connect("databases/" + dbname)
-    cur = con.cursor()
-    cur.execute("SELECT warn FROM USERS where num_id = (?)", (user_id,))
-    warns = cur.fetchone()
-    cur.execute("UPDATE USERS SET warn=(?) where num_id=(?)", (warns[0] - 1, user_id,))
-    con.commit()
-    con.close()
-    return True
-
-
-def ban_user(chat_id, user_id):
-    dbname = str(chat_id) + '.db'
-    con = sqlite3.connect("databases/" + dbname)
-    cur = con.cursor()
-    cur.execute("UPDATE USERS SET 'status' = 'banned' where num_id=:id", {'id': user_id})
-    con.commit()
-    con.close()
-    return True
-
-
-def un_ban(chat_id, username):
-    dbname = str(chat_id) + '.db'
-    con = sqlite3.connect("databases/" + dbname)
-    cur = con.cursor()
-    cur.execute("SELECT num_id FROM USERS WHERE username = (?)", (username,))
-    result = cur.fetchone()
-    if result is not None:
-        cur.execute("UPDATE USERS SET 'status' = 'member' WHERE num_id =(?)", (result[0],))
-        return True
-    else:
+def new_user(name: str, username: str, user_id: int, status: str, chat_id: Union[str, int]) -> bool:
+    """افزودن کاربر جدید به دیتابیس"""
+    dbname = f"{chat_id}.db"
+    try:
+        with sqlite3.connect(f"databases/{dbname}") as con:
+            cur = con.cursor()
+            cur.execute('''
+                INSERT OR IGNORE INTO USERS 
+                VALUES (?,?,?,?,?,?,?)
+            ''', (name, username, user_id, False, 0, status, False))
+            return True
+    except sqlite3.Error as e:
+        print(f"خطا در ثبت کاربر: {str(e)}")
         return False
 
+# ---------------------- توابع تغییر وضعیت کاربر ----------------------
+def user_rejoined(user_id: int, chat_id: Union[str, int]) -> bool:
+    """بازنشانی وضعیت کاربر هنگام پیوستن مجدد"""
+    dbname = f"{chat_id}.db"
+    try:
+        with sqlite3.connect(f"databases/{dbname}") as con:
+            cur = con.cursor()
+            cur.execute('''
+                UPDATE USERS 
+                SET status = 'member', is_admin = 0 
+                WHERE num_id = ?
+            ''', (user_id,))
+            return True
+    except sqlite3.Error as e:
+        print(f"خطا در بازنشانی وضعیت: {str(e)}")
+        return False
 
-def promote(chat_id, user_id):
-    dbname = str(chat_id) + '.db'
-    con = sqlite3.connect("databases/" + dbname)
-    cur = con.cursor()
-    cur.execute("UPDATE USERS SET status = (?) , is_admin=(?)  WHERE num_id = (?)",
-                ('administrator', True, user_id))
-    con.commit()
-    con.close()
-    return True
+def verify_user(chat_id: Union[str, int], user_id: int) -> bool:
+    """تأیید هویت کاربر"""
+    dbname = f"{chat_id}.db"
+    try:
+        with sqlite3.connect(f"databases/{dbname}") as con:
+            cur = con.cursor()
+            cur.execute('''
+                UPDATE USERS 
+                SET is_verified = 1 
+                WHERE num_id = ?
+            ''', (user_id,))
+            return True
+    except sqlite3.Error as e:
+        print(f"خطا در تأیید کاربر: {str(e)}")
+        return False
 
+# ---------------------- توابع مدیریت اخطارها ----------------------
+def add_warns(chat_id: Union[str, int], user_id: int) -> bool:
+    """افزودن اخطار به کاربر"""
+    dbname = f"{chat_id}.db"
+    try:
+        with sqlite3.connect(f"databases/{dbname}") as con:
+            cur = con.cursor()
+            cur.execute('''
+                UPDATE USERS 
+                SET warn = warn + 1 
+                WHERE num_id = ?
+            ''', (user_id,))
+            return True
+    except sqlite3.Error as e:
+        print(f"خطا در افزودن اخطار: {str(e)}")
+        return False
 
-def demote(chat_id, user_id):
-    """ignore this"""
-    dbname = str(chat_id) + '.db'
-    con = sqlite3.connect("databases/" + dbname)
-    cur = con.cursor()
-    cur.execute("UPDATE USERS set is_admin=(?),status=(?) where num_id=(?)",
-                (False, "member", user_id))
-    con.commit()
-    con.close()
-    return True
+def del_warns(chat_id: Union[str, int], user_id: int) -> bool:
+    """کاهش اخطارهای کاربر"""
+    dbname = f"{chat_id}.db"
+    try:
+        with sqlite3.connect(f"databases/{dbname}") as con:
+            cur = con.cursor()
+            cur.execute('''
+                UPDATE USERS 
+                SET warn = CASE WHEN warn > 0 THEN warn - 1 ELSE 0 END 
+                WHERE num_id = ?
+            ''', (user_id,))
+            return True
+    except sqlite3.Error as e:
+        print(f"خطا در کاهش اخطار: {str(e)}")
+        return False
 
+# ---------------------- توابع بن/آنبن ----------------------
+def ban_user(chat_id: Union[str, int], user_id: int) -> bool:
+    """بن کردن کاربر"""
+    dbname = f"{chat_id}.db"
+    try:
+        with sqlite3.connect(f"databases/{dbname}") as con:
+            cur = con.cursor()
+            cur.execute('''
+                UPDATE USERS 
+                SET status = 'banned' 
+                WHERE num_id = ?
+            ''', (user_id,))
+            return True
+    except sqlite3.Error as e:
+        print(f"خطا در بن کاربر: {str(e)}")
+        return False
 
-def get_setting(chat_id):
-    dbname = str(chat_id) + '.db'
-    con = sqlite3.connect("databases/" + dbname)
-    cur = con.cursor()
-    cur.execute("SELECT * FROM SETTING")
-    result = cur.fetchall()
-    return result
+def un_ban(chat_id: Union[str, int], username: str) -> bool:
+    """آنبن کردن کاربر"""
+    dbname = f"{chat_id}.db"
+    try:
+        with sqlite3.connect(f"databases/{dbname}") as con:
+            cur = con.cursor()
+            cur.execute('''
+                UPDATE USERS 
+                SET status = 'member' 
+                WHERE username = ?
+            ''', (username,))
+            return cur.rowcount > 0
+    except sqlite3.Error as e:
+        print(f"خطا در آنبن: {str(e)}")
+        return False
 
+# ---------------------- توابع مدیریت ادمین‌ها ----------------------
+def promote(chat_id: Union[str, int], user_id: int) -> bool:
+    """ارتقا کاربر به ادمین"""
+    dbname = f"{chat_id}.db"
+    try:
+        with sqlite3.connect(f"databases/{dbname}") as con:
+            cur = con.cursor()
+            cur.execute('''
+                UPDATE USERS 
+                SET status = 'administrator', is_admin = 1 
+                WHERE num_id = ?
+            ''', (user_id,))
+            return True
+    except sqlite3.Error as e:
+        print(f"خطا در ارتقا کاربر: {str(e)}")
+        return False
 
-def change_answer(chat_id):
-    dbname = str(chat_id) + '.db'
-    con = sqlite3.connect("databases/" + dbname)
-    cur = con.cursor()
-    cur.execute("SELECT * FROM SETTING")
-    result = cur.fetchall()
+def demote(chat_id: Union[str, int], user_id: int) -> bool:
+    """تنزل کاربر از ادمین"""
+    dbname = f"{chat_id}.db"
+    try:
+        with sqlite3.connect(f"databases/{dbname}") as con:
+            cur = con.cursor()
+            cur.execute('''
+                UPDATE USERS 
+                SET status = 'member', is_admin = 0 
+                WHERE num_id = ?
+            ''', (user_id,))
+            return True
+    except sqlite3.Error as e:
+        print(f"خطا در تنزل کاربر: {str(e)}")
+        return False
 
-    cur.execute("UPDATE SETTING SET answer_why=(?)", (not result[0][1],))
-    con.commit()
-    con.close()
-    return not result[0][1]
+# ---------------------- توابع مدیریت تنظیمات ----------------------
+def get_setting(chat_id: Union[str, int]) -> Optional[List[Tuple]]:
+    """دریافت تنظیمات گروه"""
+    dbname = f"{chat_id}.db"
+    try:
+        with sqlite3.connect(f"databases/{dbname}") as con:
+            cur = con.cursor()
+            cur.execute("SELECT * FROM SETTING")
+            return cur.fetchall()
+    except sqlite3.Error as e:
+        print(f"خطا در دریافت تنظیمات: {str(e)}")
+        return None
 
-
-def change_comment(chat_id):
-    dbname = str(chat_id) + '.db'
-    con = sqlite3.connect("databases/" + dbname)
-    cur = con.cursor()
-    cur.execute("SELECT * FROM SETTING")
-    result = cur.fetchall()
-
-    cur.execute("UPDATE SETTING SET comment_protector=(?)", (not result[0][0],))
-    con.commit()
-    con.close()
-    return not result[0][0]
+def change_answer(chat_id: Union[str, int]) -> Optional[bool]:
+    """تغییر وضعیت پاسخ‌دهی خودکار"""
+    dbname = f"{chat_id}.db"
+    try:
+        with sqlite3.connect(f"databases/{dbname}") as con:
+            cur = con.cursor()
+            cur.execute("SELECT answer_why FROM SETTING")
+            current = cur.fetchone()[0]
+            new_value = not current
+            cur.execute("UPDATE SETTING SET answer_why = ?", (new_value,))
+            return new_value
+    except sqlite3.Error as e:
+        print(f"خطا در تغییر تنظیمات: {str(e)}")
+        return None
